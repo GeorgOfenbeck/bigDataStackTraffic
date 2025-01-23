@@ -2,6 +2,30 @@ version: '3'
 
 services:
 
+  db:
+   image: postgres
+   restart: always
+   ports:
+      - 5432:5432
+   environment:
+      # POSTGRES_USER: user def postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: accidents
+   volumes:
+      - local_pgdata:/var/lib/postgresql/data
+  
+  pgadmin:
+   image: dpage/pgadmin4
+   container_name: pgadmin4_container
+   restart: always
+   ports:
+      - "5050:80"
+   environment:
+      PGADMIN_DEFAULT_EMAIL: pgadmin@mail.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+   volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
   namenode:
     image: sbloodys/hadoop:3.3.6
     hostname: namenode
@@ -9,10 +33,14 @@ services:
     command: [ "hdfs", "namenode" ]
     ports:
       - 19870:9870
+      - 8020:8020
     env_file:
       - docker-compose.config
     environment:
       ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
+    volumes:
+      #      - hadoop_namenode:/hadoop/dfs/name
+      - ./source_data/US_Accidents_March23.csv:/us_accidents.csv  #TODO:  Make sure to have source_data folder and data 
     logging:
       driver: "json-file"
       options:
@@ -119,12 +147,24 @@ services:
       - 8081:8081
     env_file:
       - ./hadoop.env
+ 
+  spark-worker2:
+    image: ofenbeck/spark-worker:3.5.4-hadoop3.4.1
+    container_name: spark-worker2
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+    ports:
+      - 8082:8082
+    env_file:
+      - ./hadoop.env
       
 
 volumes:
-  hadoop_namenode:
-  hadoop_datanode1:
-  hadoop_datanode2:
+  # hadoop_namenode:
+  # hadoop_datanode1:
+  # hadoop_datanode2:
   local_pgdata:
   pgadmin-data:
   metabase-data:

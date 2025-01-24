@@ -1,0 +1,13 @@
+
+version: '4.8'
+
+services:
+  tensorflow:
+    image: tensorflow/tensorflow:latest-gpu
+    container_name: tensorgpu
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]

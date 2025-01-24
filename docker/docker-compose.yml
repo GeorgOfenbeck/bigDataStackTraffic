@@ -2,6 +2,23 @@ version: '3'
 
 services:
 
+
+
+  jupyter:
+    image: tensorflow/tensorflow:latest-gpu-jupyter
+    container_name: jupyter
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./notebooks:/tf/notebooks
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - JUPYTER_TOKEN=zrdp
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
   db:
    image: postgres
    restart: always

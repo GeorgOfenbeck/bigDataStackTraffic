@@ -1,0 +1,14 @@
+
+version: '3.8'
+
+services:
+  cuda-sample:
+    image: nvcr.io/nvidia/k8s/cuda-sample:nbody
+    container_name: cuda-sample
+    command: nbody -gpu -benchmark
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]

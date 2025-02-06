@@ -1,1 +1,9 @@
 docker/source_data/US_Accidents_March23.csv
+seaborn/data/
+seaborn/include/
+seaborn/lib/
+seaborn/lib64/
+seaborn/share/
+seaborn/bin/
+
+

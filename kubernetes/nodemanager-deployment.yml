@@ -1,0 +1,48 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodemanager
+  namespace: bigdata
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hadoop
+      component: nodemanager
+  template:
+    metadata:
+      labels:
+        app: hadoop
+        component: nodemanager
+    spec:
+      containers:
+      - name: nodemanager
+        image: sbloodys/hadoop:3.3.6
+        command: ["yarn", "nodemanager"]
+        envFrom:
+        - configMapRef:
+            name: hadoop-config
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8042
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      initContainers:
+      - name: wait-for-resourcemanager
+        image: busybox
+        command: ['sh', '-c', 'until nc -z resourcemanager 8088; do sleep 1; done;']
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodemanager
+  namespace: bigdata
+spec:
+  ports:
+  - port: 8042
+    targetPort: 8042
+  selector:
+    app: hadoop
+    component: nodemanager

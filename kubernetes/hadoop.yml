@@ -1,0 +1,243 @@
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bigdata
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hadoop-config
+  namespace: bigdata
+data:
+  HADOOP_HOME: /opt/hadoop
+  CORE-SITE.XML_fs.default.name: hdfs://namenode:8020
+  CORE-SITE.XML_fs.defaultFS: hdfs://namenode:8020
+  CORE-SITE.XML_hadoop.http.staticuser.user: hadoop
+  HDFS-SITE.XML_dfs.namenode.rpc-address: namenode:8020
+  HDFS-SITE.XML_dfs.replication: "1"
+  MAPRED-SITE.XML_mapreduce.framework.name: yarn
+  MAPRED-SITE.XML_yarn.app.mapreduce.am.env: HADOOP_MAPRED_HOME=$HADOOP_HOME
+  MAPRED-SITE.XML_mapreduce.map.env: HADOOP_MAPRED_HOME=$HADOOP_HOME
+  MAPRED-SITE.XML_mapreduce.reduce.env: HADOOP_MAPRED_HOME=$HADOOP_HOME
+  YARN-SITE.XML_yarn.resourcemanager.hostname: resourcemanager
+  YARN-SITE.XML_yarn.nodemanager.pmem-check-enabled: "false"
+  YARN-SITE.XML_yarn.nodemanager.delete.debug-delay-sec: "600"
+  YARN-SITE.XML_yarn.nodemanager.vmem-check-enabled: "false"
+  YARN-SITE.XML_yarn.nodemanager.aux-services: mapreduce_shuffle
+  CAPACITY-SCHEDULER.XML_yarn.scheduler.capacity.maximum-applications: "10000"
+  CAPACITY-SCHEDULER.XML_yarn.scheduler.capacity.maximum-am-resource-percent: "0.1"
+  CAPACITY-SCHEDULER.XML_yarn.scheduler.capacity.resource-calculator: org.apache.hadoop.yarn.util.resource.DefaultResourceCalculator
+  CAPACITY-SCHEDULER.XML_yarn.scheduler.capacity.root.queues: default
+  CAPACITY-SCHEDULER.XML_yarn.scheduler.capacity.root.default.capacity: "100"
+  CAPACITY-SCHEDULER.XML_yarn.scheduler.capacity.root.default.user-limit-factor: "1"
+  CAPACITY-SCHEDULER.XML_yarn.scheduler.capacity.root.default.maximum-capacity: "100"
+  CAPACITY-SCHEDULER.XML_yarn.scheduler.capacity.root.default.state: RUNNING
+  CAPACITY-SCHEDULER.XML_yarn.scheduler.capacity.root.default.acl_submit_applications: "*"
+  CAPACITY-SCHEDULER.XML_yarn.scheduler.capacity.root.default.acl_administer_queue: "*"
+  CAPACITY-SCHEDULER.XML_yarn.scheduler.capacity.node-locality-delay: "40"
+  CAPACITY-SCHEDULER.XML_yarn.scheduler.capacity.queue-mappings: ""
+  CAPACITY-SCHEDULER.XML_yarn.scheduler.capacity.queue-mappings-override.enable: "false"
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: namenode
+  namespace: bigdata
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hadoop
+      component: namenode
+  template:
+    metadata:
+      labels:
+        app: hadoop
+        component: namenode
+    spec:
+      containers:
+      - name: namenode
+        image: sbloodys/hadoop:3.3.6
+        command: ["hdfs", "namenode"]
+        ports:
+        - containerPort: 9870
+        - containerPort: 8020
+        envFrom:
+        - configMapRef:
+            name: hadoop-config
+        volumeMounts:
+        - name: namenode-storage
+          mountPath: /tmp/hadoop-root/dfs/name
+      volumes:
+      - name: namenode-storage
+        emptyDir: {}
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: datanode
+  namespace: bigdata
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hadoop
+      component: datanode
+  template:
+    metadata:
+      labels:
+        app: hadoop
+        component: datanode
+    spec:
+      containers:
+      - name: datanode
+        image: sbloodys/hadoop:3.3.6
+        command: ["hdfs", "datanode"]
+        ports:
+        - containerPort: 9864
+        envFrom:
+        - configMapRef:
+            name: hadoop-config
+        volumeMounts:
+        - name: datanode-storage
+          mountPath: /tmp/hadoop-root/dfs/data
+      volumes:
+      - name: datanode-storage
+        emptyDir: {}
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resourcemanager
+  namespace: bigdata
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hadoop
+      component: resourcemanager
+  template:
+    metadata:
+      labels:
+        app: hadoop
+        component: resourcemanager
+    spec:
+      containers:
+      - name: resourcemanager
+        image: sbloodys/hadoop:3.3.6
+        command: ["yarn", "resourcemanager"]
+        ports:
+        - containerPort: 8088
+        envFrom:
+        - configMapRef:
+            name: hadoop-config
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodemanager
+  namespace: bigdata
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hadoop
+      component: nodemanager
+  template:
+    metadata:
+      labels:
+        app: hadoop
+        component: nodemanager
+    spec:
+      containers:
+      - name: nodemanager
+        image: sbloodys/hadoop:3.3.6
+        command: ["yarn", "nodemanager"]
+        ports:
+        - containerPort: 8042
+        envFrom:
+        - configMapRef:
+            name: hadoop-config
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: namenode
+  namespace: bigdata
+spec:
+  selector:
+    app: hadoop
+    component: namenode
+  ports:
+  - protocol: TCP
+    port: 9870
+    name: http
+    targetPort: 9870
+  - protocol: TCP
+    port: 8020
+    name: rpc
+    targetPort: 8020
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: datanode
+  namespace: bigdata
+spec:
+  selector:
+    app: hadoop
+    component: datanode
+  ports:
+  - protocol: TCP
+    port: 9864
+    name: data
+    targetPort: 9864
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: resourcemanager
+  namespace: bigdata
+spec:
+  selector:
+    app: hadoop
+    component: resourcemanager
+  ports:
+  - protocol: TCP
+    port: 8088
+    name: web
+    targetPort: 8088
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodemanager
+  namespace: bigdata
+spec:
+  selector:
+    app: hadoop
+    component: nodemanager
+  ports:
+  - protocol: TCP
+    port: 8042
+    name: web
+    targetPort: 8042

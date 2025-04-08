@@ -1,4 +1,3 @@
-# filepath: kafka-app.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -7,9 +6,12 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/GeorgOfenbeck/bigDataStackTraffic
-    path: kafka
-    targetRevision: HEAD
+    repoURL: https://charts.bitnami.com/bitnami  # Use the Bitnami Helm repository for the chart
+    chart: kafka                                # Specify the Helm chart name
+    targetRevision: 15.2.2                      # Specify the chart version (optional)
+    helm:
+      valueFiles:
+        - https://raw.githubusercontent.com/GeorgOfenbeck/bigDataStackTraffic/main/kafka/values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: kafka

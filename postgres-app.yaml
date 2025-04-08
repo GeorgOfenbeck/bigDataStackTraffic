@@ -1,4 +1,4 @@
-# filepath: postgres-app.yaml
+# filepath: [postgres-app.yaml](http://_vscodecontentref_/4)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -7,9 +7,12 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/GeorgOfenbeck/bigDataStackTraffic
-    path: postgres
-    targetRevision: HEAD
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: postgresql
+    targetRevision: 12.1.6
+    helm:
+      valueFiles:
+        - https://raw.githubusercontent.com/GeorgOfenbeck/bigDataStackTraffic/main/postgres/values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: postgres

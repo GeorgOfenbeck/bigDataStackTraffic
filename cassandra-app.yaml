@@ -1,0 +1,19 @@
+# filepath: cassandra-app.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cassandra
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/GeorgOfenbeck/bigDataStackTraffic
+    path: cassandra
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cassandra
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

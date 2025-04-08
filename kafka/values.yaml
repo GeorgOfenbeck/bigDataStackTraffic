@@ -1,0 +1,8 @@
+# filepath: kafka/values.yaml
+global:
+  storageClass: "microk8s-hostpath"
+persistence:
+  size: 5Gi
+zookeeper:
+  persistence:
+    size: 5Gi

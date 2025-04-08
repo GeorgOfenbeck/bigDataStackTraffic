@@ -7,3 +7,5 @@ seaborn/share/
 seaborn/bin/
 
 
+.DS_Store
+*.log

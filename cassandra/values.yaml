@@ -1,0 +1,6 @@
+# filepath: cassandra/values.yaml
+cassandra:
+  config:
+    cluster_name: "BigDataCluster"
+  persistence:
+    size: 5Gi

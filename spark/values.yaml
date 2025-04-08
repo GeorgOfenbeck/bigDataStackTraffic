@@ -1,0 +1,6 @@
+# filepath: spark/values.yaml
+spark:
+  master:
+    replicas: 1
+  worker:
+    replicas: 2

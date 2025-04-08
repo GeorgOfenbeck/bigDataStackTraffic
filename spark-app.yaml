@@ -9,7 +9,7 @@ spec:
   source:
     repoURL: https://charts.bitnami.com/bitnami
     chart: spark
-    targetRevision: 6.1.3
+    targetRevision: 9.3.6
     helm:
       valueFiles:
         - https://raw.githubusercontent.com/GeorgOfenbeck/bigDataStackTraffic/main/spark/values.yaml

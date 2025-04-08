@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://charts.bitnami.com/bitnami  # Use the Bitnami Helm repository for the chart
     chart: kafka                                # Specify the Helm chart name
-    targetRevision: 15.2.2                      # Specify the chart version (optional)
+    targetRevision: 32.1.3 
     helm:
       valueFiles:
         - https://raw.githubusercontent.com/GeorgOfenbeck/bigDataStackTraffic/main/kafka/values.yaml

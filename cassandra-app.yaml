@@ -9,7 +9,7 @@ spec:
   source:
     repoURL: https://charts.bitnami.com/bitnami
     chart: cassandra
-    targetRevision: 9.0.3
+    targetRevision: 12.3.0
     helm:
       valueFiles:
         - https://raw.githubusercontent.com/GeorgOfenbeck/bigDataStackTraffic/main/cassandra/values.yaml

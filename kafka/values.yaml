@@ -6,3 +6,4 @@ persistence:
 zookeeper:
   persistence:
     size: 5Gi
+

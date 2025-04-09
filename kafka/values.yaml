@@ -1,9 +1,12 @@
 # filepath: kafka/values.yaml
 global:
-  storageClass: "microk8s-hostpath"
-persistence:
-  size: 5Gi
-zookeeper:
-  persistence:
-    size: 5Gi
+  defaultStorageClass: "microk8s-hostpath"
+service:
+  type: LoadBalancer
+  port: 
+    external: 9094
 
+controller:
+  ## @param controller.replicaCount Number of Kafka controller-eligible nodes
+  ##
+  replicaCount: 4

@@ -15,8 +15,20 @@ spec:
     chart: kafka                                # Specify the Helm chart name
     targetRevision: 30.0.0
     helm:
-      valueFiles:
-        - https://raw.githubusercontent.com/GeorgOfenbeck/bigDataStackTraffic/main/kafka/values.yaml
+      values: |                                 # Inline the values.yaml content here
+        # Example values from values.yaml
+        listeners:
+          client:
+            protocol: 'PLAINTEXT'
+          controller:
+            protocol: 'PLAINTEXT'
+        service:
+          type: LoadBalancer
+          port: 
+            external: 9094
+        controller:
+          replicaCount: 2
+ 
   destination:
     server: https://kubernetes.default.svc
     namespace: kafka

@@ -9,4 +9,4 @@ service:
 controller:
   ## @param controller.replicaCount Number of Kafka controller-eligible nodes
   ##
-  replicaCount: 4
+  replicaCount: 2

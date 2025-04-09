@@ -1,3 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kafka
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -10,7 +15,8 @@ spec:
     chart: kafka                                # Specify the Helm chart name
     targetRevision: 30.0.0
     helm:
-      valueFiles: https://raw.githubusercontent.com/GeorgOfenbeck/bigDataStackTraffic/main/kafka/values.yaml
+      valueFiles:
+        - https://raw.githubusercontent.com/GeorgOfenbeck/bigDataStackTraffic/main/kafka/values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: kafka

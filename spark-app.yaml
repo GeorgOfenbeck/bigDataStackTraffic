@@ -1,4 +1,9 @@
 # filepath: [spark-app.yaml](http://_vscodecontentref_/2)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: spark
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -9,10 +14,10 @@ spec:
   source:
     repoURL: https://charts.bitnami.com/bitnami
     chart: spark
-    targetRevision: 9.3.6
-    helm:
-      valueFiles:
-        - https://raw.githubusercontent.com/GeorgOfenbeck/bigDataStackTraffic/main/spark/values.yaml
+    targetRevision: 9.0.0
+#    helm:
+#      valueFiles:
+#        - https://raw.githubusercontent.com/GeorgOfenbeck/bigDataStackTraffic/main/spark/values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: spark

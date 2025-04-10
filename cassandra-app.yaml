@@ -1,3 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cassandra
+---
 # filepath: [cassandra-app.yaml](http://_vscodecontentref_/3)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -9,10 +14,10 @@ spec:
   source:
     repoURL: https://charts.bitnami.com/bitnami
     chart: cassandra
-    targetRevision: 12.3.0
-    helm:
-      valueFiles:
-        - https://raw.githubusercontent.com/GeorgOfenbeck/bigDataStackTraffic/main/cassandra/values.yaml
+    targetRevision: 11.0.0
+#    helm:
+#      valueFiles:
+#        - https://raw.githubusercontent.com/GeorgOfenbeck/bigDataStackTraffic/main/cassandra/values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: cassandra

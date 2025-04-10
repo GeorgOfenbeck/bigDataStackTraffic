@@ -15,9 +15,22 @@ spec:
     repoURL: https://charts.bitnami.com/bitnami
     chart: cassandra
     targetRevision: 11.0.0
-#    helm:
-#      valueFiles:
-#        - https://raw.githubusercontent.com/GeorgOfenbeck/bigDataStackTraffic/main/cassandra/values.yaml
+    helm:
+      values: |                                 # Inline the values.yaml content here
+        # Example values from values.yaml
+        persistence:
+          size: 2Gi
+          commitLogsize: 1Gi
+        resources:
+          limits:
+            cpu: 2
+            memory: 3Gi
+          requests:
+            cpu: 2
+            memory: 2Gi
+        maxHeapSize: 2G
+        newHeapSize: 1G
+
   destination:
     server: https://kubernetes.default.svc
     namespace: cassandra
@@ -25,3 +38,5 @@ spec:
     automated:
       prune: true
       selfHeal: true
+~
+

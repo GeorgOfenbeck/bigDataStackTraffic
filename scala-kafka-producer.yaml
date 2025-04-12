@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kafka-producer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scala-kafka-producer
+  namespace: kafka-producer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scala-kafka-producer
+  template:
+    metadata:
+      labels:
+        app: scala-kafka-producer
+    spec:
+      containers:
+      - name: scala-kafka-producer
+        image: ofenbeck/scalakafkaproducer:arm64
+        ports:
+        - containerPort: 8080
+        - containerPort: 8081

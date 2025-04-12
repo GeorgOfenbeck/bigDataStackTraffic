@@ -1,0 +1,71 @@
+import java.nio.file.Path
+import $ivy.`com.ofenbeck::mill-docker_mill0.11:0.0.2`
+import mill._
+import mill.scalalib._
+import os._
+import coursier.maven.MavenRepository
+
+import com.ofenbeck.mill.docker._
+
+
+/** Usage
+
+> ./mill project.docker.buildImage
+...Pushing manifest for arm...
+...
+
+*/
+
+object project extends ScalaModule with DockerJibModule {
+  def scalaVersion = "3.3.5"
+
+  val sonatypeReleases = Seq(
+    MavenRepository("https://oss.sonatype.org/content/repositories/snapshots"),
+  )
+
+  def repositoriesTask = T.task {
+    super.repositoriesTask() ++ sonatypeReleases
+  }
+
+  override def resources: T[Seq[PathRef]] = T.sources {
+    Seq(
+      millSourcePath / "resources",
+      millSourcePath / "additional" / "resources",
+    ).map(PathRef(_))
+  }
+  def ivyDeps = Agg(
+    ivy"io.circe::circe-core:0.14.12",
+    ivy"io.circe::circe-parser:0.14.12",
+    ivy"org.apache.kafka:kafka-clients:4.0.0",
+    ivy"com.fasterxml.jackson.module::jackson-module-scala:2.18.3", 
+  )
+
+  object docker extends DockerConfig {
+
+    import com.ofenbeck.mill.docker._
+
+    override def sourceImage = JibImage.RegistryImage("eclipse-temurin:21")
+
+    override def targetImage = JibImage.RegistryImage("ofenbeck/scalakafkaproducer:arm64", Some(("DOCKER_USERNAME", "DOCKER_PASSWORD")))
+
+    override def labels = T {
+      Map(
+        "com.ofenbeck.mill.docker"         -> "javaBuildSettings",
+        "com.ofenbeck.mill.docker.version" -> "0.0.5",
+      )
+    }
+
+    override def exposedPorts = T {
+      Seq(8080, 8081)
+    }
+
+    override def exposedUdpPorts = T {
+      Seq(8082, 8083)
+    }
+
+    override def platforms = T {
+      Set(Platform("linux", "arm64"))
+    }
+  }
+}
+

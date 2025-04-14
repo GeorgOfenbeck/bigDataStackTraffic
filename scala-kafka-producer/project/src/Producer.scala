@@ -21,11 +21,6 @@ object Producer extends App {
   logger.info(s"Kafka topic: first_kafka_topic")
   val producer = new KafkaProducer[String, String](producerProps)
 
-  // Read and parse the JSON file
-  val routeSource = Source.fromResource("route.json")
-  val routeJson   = routeSource.getLines().mkStrin
-  routeSource.close()
-
   // val routeData = Json.parse(routeJson).as[List[Route]]
 
   // Send each route as a Kafka message
@@ -35,7 +30,7 @@ object Producer extends App {
   val randomMessageGen = RandomMessage.enrichedMessage()
 
   while (true) {
-    val enrichedMessage = randomMessageGen.sample
+    val enrichedMessage = randomMessageGen.sample.get
     logger.error(s"Sending data $enrichedMessage")
     producer.send(new ProducerRecord[String, String]("geohash1", enrichedMessage.toString()))
     Thread.sleep(500)

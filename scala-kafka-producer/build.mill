@@ -46,7 +46,7 @@ object project extends ScalaModule with DockerJibModule {
     override def sourceImage = JibImage.RegistryImage("eclipse-temurin:21")
 
     override def targetImage =
-      JibImage.RegistryImage("ofenbeck/scalakafkaproducer:x2", Some(("DOCKER_USERNAME", "DOCKER_PASSWORD")))
+      JibImage.RegistryImage("ofenbeck/scalakafkaproducer:x3", Some(("DOCKER_USERNAME", "DOCKER_PASSWORD")))
 
     override def labels = T {
       Map(

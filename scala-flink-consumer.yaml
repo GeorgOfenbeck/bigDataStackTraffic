@@ -9,7 +9,7 @@ metadata:
   name: scala-kafka-consumer
   namespace: kafka-consumer
 spec:
-  replicas: 1
+  replicas: 3 # Increase this to scale horizontally
   selector:
     matchLabels:
       app: scala-kafka-consumer
@@ -20,7 +20,19 @@ spec:
     spec:
       containers:
       - name: scala-kafka-consumer
-        image: ofenbeck/scalaflinkconsumer:x2
+        image: ofenbeck/scalaflinkconsumer:x13
         ports:
         - containerPort: 8080
         - containerPort: 8081
+        env:
+        - name: FLINK_PARALLELISM
+          value: "3" # Set parallelism to match replicas
+        - name: KAFKA_BROKER
+          value: "kafka.kafka.svc.cluster.local:9092"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1"

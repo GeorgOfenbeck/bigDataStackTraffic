@@ -33,6 +33,8 @@ object project extends ScalaModule with DockerJibModule {
     ivy"com.typesafe.akka::akka-stream:2.6.20",
     ivy"com.typesafe.akka::akka-stream-kafka:2.1.1",
     ivy"com.typesafe.play::play-json:2.9.4",
+    ivy"org.apache.logging.log4j:log4j-core:2.24.3",
+    ivy"org.apache.logging.log4j:log4j-api:2.24.3",
     ivy"org.apache.logging.log4j:log4j-slf4j2-impl:2.24.3",
   )
 
@@ -43,7 +45,7 @@ object project extends ScalaModule with DockerJibModule {
     override def sourceImage = JibImage.RegistryImage("eclipse-temurin:21")
 
     override def targetImage =
-      JibImage.RegistryImage("ofenbeck/scalaflinkconsumer:x10", Some(("DOCKER_USERNAME", "DOCKER_PASSWORD")))
+      JibImage.RegistryImage("ofenbeck/scalaflinkconsumer:x12", Some(("DOCKER_USERNAME", "DOCKER_PASSWORD")))
 
     override def labels = T {
       Map(

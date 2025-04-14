@@ -1,64 +1,64 @@
-import org.apache.flink.streaming.api.scala._
-import org.apache.flink.streaming.api.windowing.time.Time
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer
-import org.apache.flink.api.common.serialization.SimpleStringSchema
-// Removed incorrect import for DataStream
-import org.apache.flink.api.common.functions.AggregateFunction
-import java.util.Properties
+import akka.actor.ActorSystem
+import akka.kafka.{ConsumerSettings, Subscriptions}
+import akka.kafka.scaladsl.Consumer // Import Kafka Consumer
+import akka.stream.scaladsl.{Flow, Sink}
+import akka.stream.{ActorMaterializer, Materializer}
+import org.apache.kafka.common.serialization.StringDeserializer
 import play.api.libs.json.Json
+import org.slf4j.LoggerFactory
 
-case class KafkaConfig(broker: String, topic: String, groupId: String) {
-  def properties: Properties = {
-    val props = new Properties()
-    props.setProperty("bootstrap.servers", broker)
-    props.setProperty("group.id", groupId)
-    props
-  }
-}
+import scala.concurrent.ExecutionContextExecutor
+import scala.util.{Failure, Success}
+
+case class KafkaConfig(broker: String, topic: String, groupId: String)
 
 case class Message(road_id: String, timestamp: Long, speed: Int)
 
-object Consumer extends App {
-    val env = StreamExecutionEnvironment.getExecutionEnvironment
+object KafkaConsumerApp extends App {
+  private val logger                        = LoggerFactory.getLogger(this.getClass)
+  implicit val system: ActorSystem          = ActorSystem("KafkaConsumerSystem")
+  implicit val materializer: Materializer   = ActorMaterializer()
+  implicit val ec: ExecutionContextExecutor = system.dispatcher
 
-    val kafkaConfig = KafkaConfig("kafka.kafka.svc.cluster.local:9092", "geohash1", "groupid1")
-    val kafkaConsumer = new FlinkKafkaConsumer[String](kafkaConfig.topic, new SimpleStringSchema(), kafkaConfig.properties)
+  val kafkaConfig = KafkaConfig("kafka.kafka.svc.cluster.local:9092", "geohash1", "groupid1")
 
-    val stream: DataStream[String] = env.addSource(kafkaConsumer)
+  val consumerSettings = ConsumerSettings(system, new StringDeserializer, new StringDeserializer)
+    .withBootstrapServers(kafkaConfig.broker)
+    .withGroupId(kafkaConfig.groupId)
+    .withProperty("auto.offset.reset", "earliest")
 
-    val messages: DataStream[Message] = stream
-      .map { msg =>
-        // Parse JSON string into Message case class
-        val json = Json.parse(msg)
-        val roadId = (json \ "road_id").as[String]
-        val speed = (json \ "speed").as[Int]
-        Message(roadId, System.currentTimeMillis(), speed)
+  val consumerFuture = Consumer
+    .plainSource(consumerSettings, Subscriptions.topics(kafkaConfig.topic))
+    .map { record =>
+      // Parse JSON string into Message case class
+      val json   = Json.parse(record.value())
+      val roadId = (json \ "roadId").as[String]
+      val speed  = (json \ "speed").as[Int]
+      Message(roadId, System.currentTimeMillis(), speed)
+    }
+    .groupedWithin(1000, scala.concurrent.duration.FiniteDuration(5, "seconds")) // Batch messages
+    .map { messages =>
+      // Calculate average speed for each road_id
+      messages
+        .groupBy(_.road_id)
+        .map { case (roadId, msgs) =>
+          val totalSpeed = msgs.map(_.speed).sum
+          val count      = msgs.size
+          val avgSpeed   = if (count > 0) totalSpeed.toDouble / count else 0.0
+          (roadId, avgSpeed, count)
+        }
+    }
+    .to(Sink.foreach { aggregated =>
+      // Log the aggregated results
+      aggregated.foreach { case (roadId, avgSpeed, count) =>
+        logger.error(s"Road ID: $roadId, Average Speed: $avgSpeed, Count: $count")
       }
+    }).run()
 
-    val aggregatedStream = messages
-      .keyBy(_.road_id)
-      .timeWindow(Time.seconds(30), Time.seconds(5)) // Sliding window of 30 seconds, sliding every 5 seconds
-      .aggregate(new AverageSpeedAggregator)
+  
+ 
 
-    aggregatedStream.print()
-
-    env.execute("Flink Kafka Consumer with Sliding Window")
-}
-
-class AverageSpeedAggregator extends AggregateFunction[Message, (Int, Int), (Double, Int)] {
-  // Accumulator: (sum of speeds, count of messages)
-  override def createAccumulator(): (Int, Int) = (0, 0)
-
-  override def add(value: Message, accumulator: (Int, Int)): (Int, Int) = {
-    (accumulator._1 + value.speed, accumulator._2 + 1)
-  }
-
-  override def getResult(accumulator: (Int, Int)): (Double, Int) = {
-    val averageSpeed = if (accumulator._2 > 0) accumulator._1.toDouble / accumulator._2 else 0.0
-    (averageSpeed, accumulator._2)
-  }
-
-  override def merge(a: (Int, Int), b: (Int, Int)): (Int, Int) = {
-    (a._1 + b._1, a._2 + b._2)
+  sys.addShutdownHook {
+    system.terminate()
   }
 }

@@ -13,7 +13,7 @@ import com.ofenbeck.mill.docker._
   */
 
 object project extends ScalaModule with DockerJibModule {
-  override def scalaVersion = "3.6.4"
+  override def scalaVersion = "2.12.20"
 
   val sonatypeReleases = Seq(
     MavenRepository("https://oss.sonatype.org/content/repositories/snapshots"),
@@ -37,6 +37,10 @@ object project extends ScalaModule with DockerJibModule {
     ivy"org.scalacheck::scalacheck:1.18.1",
     ivy"org.scalatest::scalatest:3.2.19",
     ivy"org.scalatestplus::scalacheck-1-18:3.2.19.0",
+    ivy"org.apache.flink:flink-streaming-scala_2.12:1.20.1",
+    ivy"org.apache.flink:flink-connector-kafka:3.4.0-1.20",
+    ivy"org.apache.flink:flink-json:1.20.1",
+    ivy"org.apache.flink:flink-scala_2.12:1.20.1",
   )
 
   object docker extends DockerConfig {
@@ -46,7 +50,7 @@ object project extends ScalaModule with DockerJibModule {
     override def sourceImage = JibImage.RegistryImage("eclipse-temurin:21")
 
     override def targetImage =
-      JibImage.RegistryImage("ofenbeck/scalakafkaproducer:x2", Some(("DOCKER_USERNAME", "DOCKER_PASSWORD")))
+      JibImage.RegistryImage("ofenbeck/scalaflinkconsumer:x1", Some(("DOCKER_USERNAME", "DOCKER_PASSWORD")))
 
     override def labels = T {
       Map(

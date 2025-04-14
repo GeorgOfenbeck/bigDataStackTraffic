@@ -1,41 +1,44 @@
+import org.slf4j.LoggerFactory
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
+import scala.io.Source
+import java.time.Instant
+import play.api.libs.json.Json
+import play.api.libs.json.Format
 
 object Producer extends App {
-  import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
-  //import io.circe.generic.auto._
-  import io.circe.syntax._
-  import io.circe.parser
-  import scala.io.Source
-  import scala.concurrent.ExecutionContext.Implicits.global
-  import scala.concurrent.Future
-  import java.time.Instant
-  import scala.concurrent.duration._
-  import scala.concurrent.Await
+  private val logger = LoggerFactory.getLogger(this.getClass)
 
-  case class Message(car_id: Int, timestamp: String, data: Map[String, String])
-
-  def simulateCar(carId: Int, route: List[Map[String, String]], producer: KafkaProducer[String, String]): Future[Unit] = Future {
-    route.foreach { message =>
-      val enrichedMessage = message + ("car_id" -> carId.toString, "timestamp" -> Instant.now.toString)
-      println(s"sending data $carId: $enrichedMessage")
-      producer.send(new ProducerRecord[String, String]("first_kafka_topic", enrichedMessage.asJson.noSpaces))
-      Thread.sleep(2000)
-    }
-  }
+  // Define the case class and JSON format for Play JSON
+  case class Route(speed: Int)
+  implicit val routeFormat: Format[Route] = Json.format[Route]
 
   val producerProps = new java.util.Properties()
-  producerProps.put("bootstrap.servers", sys.env.getOrElse("KAFKA_BROKER", "kafka:9092"))
+  // producerProps.put("bootstrap.servers", sys.env.getOrElse("KAFKA_BROKER", "localhost:9092"))
+  producerProps.put("bootstrap.servers", sys.env.getOrElse("KAFKA_BROKER", "kafka.kafka.svc.cluster.local:9092"))
   producerProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
   producerProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
-
+  logger.info(s"Kafka broker: ${producerProps.getProperty("bootstrap.servers")}")
+  logger.info(s"Kafka topic: first_kafka_topic")
   val producer = new KafkaProducer[String, String](producerProps)
 
+  // Read and parse the JSON file
   val routeSource = Source.fromResource("route.json")
-  val routeWithBreak = io.circe.parser.decode[List[Map[String, String]]](routeSource.getLines().mkString).getOrElse(List.empty)
+  val routeJson   = routeSource.getLines().mkStrin
   routeSource.close()
 
-  val futures = for (i <- 0 until 15) yield simulateCar(i, routeWithBreak, producer)
+  // val routeData = Json.parse(routeJson).as[List[Route]]
 
-  Await.result(Future.sequence(futures), Duration.Inf)
+  // Send each route as a Kafka message
+
+  var carId = 0
+
+  val randomMessageGen = RandomMessage.enrichedMessage()
+
+  while (true) {
+    val enrichedMessage = randomMessageGen.sample
+    logger.error(s"Sending data $enrichedMessage")
+    producer.send(new ProducerRecord[String, String]("geohash1", enrichedMessage.toString()))
+    Thread.sleep(500)
+  }
   producer.close()
 }
-

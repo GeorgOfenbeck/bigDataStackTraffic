@@ -29,6 +29,12 @@ spec:
           value: "3" # Set parallelism to match replicas
         - name: KAFKA_BROKER
           value: "kafka.kafka.svc.cluster.local:9092"
+        - name: POSTGRES_URL
+          value: "jdbc:postgresql://postgres-postgresql.postgres.svc.cluster.local:5432/postgres"
+        - name: POSTGRES_USER
+          value: "postgres"
+        - name: POSTGRES_PASSWORD
+          value: "X6s4OheQQe"
         resources:
           requests:
             memory: "512Mi"

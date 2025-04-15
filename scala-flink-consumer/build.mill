@@ -39,8 +39,12 @@ object project extends ScalaModule with DockerJibModule {
     // Spray JSON for JSON parsing
     ivy"io.spray::spray-json:1.3.6",
 
+    ivy"org.apache.flink:flink-connector-cassandra_2.12:1.16.3",
+    ivy"org.apache.cassandra:java-driver-core:4.19.0",
+    ivy"org.postgresql:postgresql:42.7.5",
     // Logging (optional, for better log management)
     //ivy"ch.qos.logback:logback-classic:1.4.11"
+    ivy"org.apache.logging.log4j:log4j-slf4j2-impl:2.24.3",
   )
 
   // Add Flink runtime dependency for packaging the application
@@ -55,7 +59,7 @@ object project extends ScalaModule with DockerJibModule {
     override def sourceImage = JibImage.RegistryImage("eclipse-temurin:21")
 
     override def targetImage =
-      JibImage.RegistryImage("ofenbeck/scalaflinkconsumer:x16", Some(("DOCKER_USERNAME", "DOCKER_PASSWORD")))
+      JibImage.RegistryImage("ofenbeck/scalaflinkconsumer:x32", Some(("DOCKER_USERNAME", "DOCKER_PASSWORD")))
 
     override def labels = T {
       Map(

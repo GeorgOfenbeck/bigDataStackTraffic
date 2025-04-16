@@ -1,12 +1,12 @@
-# filepath: kafka/values.yaml
-global:
-  defaultStorageClass: "microk8s-hostpath"
+# Example values from values.yaml
+listeners:
+  client:
+    protocol: 'PLAINTEXT'
+  controller:
+    protocol: 'PLAINTEXT'
 service:
   type: LoadBalancer
   port: 
     external: 9094
-
 controller:
-  ## @param controller.replicaCount Number of Kafka controller-eligible nodes
-  ##
   replicaCount: 2

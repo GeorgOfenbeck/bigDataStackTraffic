@@ -11,6 +11,8 @@ import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 import java.util.Properties
 import spray.json._
 import org.apache.flink.streaming.connectors.cassandra.CassandraSink
+import org.apache.flink.connector.jdbc.JdbcSink
+import org.apache.flink.connector.jdbc.JdbcStatementBuilder
 
 case class Location(latitude: Double, longitude: Double)
 case class GeoHashMessage(
@@ -87,9 +89,9 @@ object ScalaKafkaConsumer {
     logger.info("Result Stream: " + resultStream.toString())
 
       // Read PostgreSQL connection details from environment variables
-    val postgresUrl = Properties.envOrElse("POSTGRES_URL", "jdbc:postgresql://localhost:5432/postgres")
-    val postgresUser = Properties.envOrElse("POSTGRES_USER", "postgres")
-    val postgresPassword = Properties.envOrElse("POSTGRES_PASSWORD", "")
+    val postgresUrl = sys.env.getOrElse("POSTGRES_URL", "jdbc:postgresql://localhost:5432/postgres")
+    val postgresUser = sys.env.getOrElse("POSTGRES_USER", "postgres")
+    val postgresPassword = sys.env.getOrElse("POSTGRES_PASSWORD", "")
 
     // Define the PostgreSQL sink
     val postgresSink = JdbcSink.sink[RoadStats](

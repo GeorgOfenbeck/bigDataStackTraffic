@@ -1,0 +1,42 @@
+import java.nio.file.Path
+import $ivy.`com.ofenbeck::mill-docker_mill0.11:0.0.2`
+import mill._
+import mill.scalalib._
+import os._
+import coursier.maven.MavenRepository
+
+import com.ofenbeck.mill.docker._
+
+/** Usage
+  *
+  * > ./mill project.docker.buildImage ...Pushing manifest for arm... ...
+  */
+
+object project extends ScalaModule {
+  override def scalaVersion = "2.13.12"
+
+  val sonatypeReleases = Seq(
+    MavenRepository("https://oss.sonatype.org/content/repositories/snapshots"),
+  )
+
+  def repositoriesTask = T.task {
+    super.repositoriesTask() ++ sonatypeReleases
+  }
+
+  override def resources: T[Seq[PathRef]] = T.sources {
+    Seq(
+      millSourcePath / "resources",
+      millSourcePath / "additional" / "resources",
+    ).map(PathRef(_))
+  }
+  def ivyDeps = Agg(
+    // Spark Core and SQL
+    ivy"org.apache.spark::spark-core:3.4.0",
+    ivy"org.apache.spark::spark-sql:3.4.0",
+    // PostgreSQL JDBC Driver
+    ivy"org.postgresql:postgresql:42.6.0",
+    // Logging (optional, for better logging support)
+    ivy"ch.qos.logback:logback-classic:1.4.11"
+  )
+
+}
